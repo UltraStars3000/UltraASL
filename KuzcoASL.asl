@@ -1,15 +1,16 @@
-//	The Emperor's New Groove PC autosplitter. English, French, Italian and Finish versions
+//	The Emperor's New Groove PC autosplitter. English, French, Spanish, Italian and Finnish versions
 //	Developped by UltraStars3000 || Tested by the entire TENG crew
 
-//  TODO LIST:
-//  Spanish & German support and more if any
+//	TODO LIST:
+//	German support and more if any
 
 state("groove")
 {
 	byte ENGLISH : 0x179D00;
 	byte FRENCH : 0x179E9C;
+	byte SPANISH : 0x179EF4;
 	byte ITALIAN : 0x179E94;
-	byte FINISH : 0x179EA4;
+	byte FINNISH : 0x179EA4;
 }
 
 state("groove", "EN")
@@ -19,7 +20,7 @@ state("groove", "EN")
 	byte State : 0x1807E9;
 	byte Ingame : 0x2D991C;
 	byte ChSw : 0x2D8B40;
-	byte IsFade : 0x182DC0;
+	byte ILCheck : 0x183D90;
 	
 	byte Secrets : 0x1844F4;
 	byte Coins : 0x1FC604;
@@ -32,11 +33,24 @@ state("groove", "FR")
 	byte State : 0x181089;
 	byte Ingame : 0x2DA1C4;
 	byte ChSw : 0x2D93E0;
-	byte IsFade : 0x183664;
+	byte ILCheck : 0x184630;
 	
 	byte Secrets : 0x1844F4;
 	byte Coins : 0x1FCEA4;
 	byte Wampys : 0x1FCEB4;
+}
+state("groove", "ES")
+{
+	byte World_ID : 0x184AB8;
+	byte Chapter_ID : 0x184ABC;
+	byte State : 0x180D59;
+	byte Ingame : 0x2D9E94;
+	byte ChSw : 0x2D90B0;
+	byte ILCheck : 0x184300;
+	
+	byte Secrets : 0x184A64;
+	byte Coins : 0x1FCB74;
+	byte Wampys : 0x1FCB84;	
 }
 state("groove", "IT")
 {
@@ -45,7 +59,7 @@ state("groove", "IT")
 	byte State : 0x181159;
 	byte Ingame : 0x2DA294;
 	byte ChSw : 0x2D94B0;
-	byte IsFade : 0x183734;
+	byte ILCheck : 0x184700;
 	
 	byte Secrets : 0x184E64;
 	byte Coins : 0x1FCF74;
@@ -58,7 +72,7 @@ state("groove", "FI")
 	byte State : 0x1811A9;
 	byte Ingame : 0x2DA2E4;
 	byte ChSw : 0x2D9500;
-	byte IsFade : 0x183784;
+	byte ILCheck : 0x184750;
 	
 	byte Secrets : 0x184EB4;
 	byte Coins : 0x1FCFC4;
@@ -67,7 +81,7 @@ state("groove", "FI")
 
 startup
 {
-	settings.Add("info", true, "The Emperor's New Groove autospliiter v0.9.5a by UltraStars3000");
+	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.0.0 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or to contribute on this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	settings.Add("contact", true, "Contact me if you possess any version that isn't supported");
 	
@@ -91,15 +105,20 @@ init
 		version = "FR";
 		vars.lang = "French";
 	}
+	else if(current.SPANISH == 83)
+	{
+		version = "ES";
+		vars.lang = "Spanish";
+	}
 	else if(current.ITALIAN == 69)
 	{
 		version = "IT";
 		vars.lang = "Italian";
 	}
-	else if(current.FINISH == 76)
+	else if(current.FINNISH == 76)
 	{
 		version = "FI";
-		vars.lang = "Finish";
+		vars.lang = "Finnish";
 	}
 	
 	vars.index = 0;	
@@ -147,6 +166,7 @@ start
 		if(old.Ingame == 1 && current.Ingame == 0)
 		{
 			vars.index = vars.indexArray[current.World_ID-1, current.Chapter_ID-1];
+			vars.asCase = 0;
 			vars.hasWampy = false;
 			return true;
 		}
@@ -156,6 +176,7 @@ start
 		if(old.Ingame == 1 && current.Ingame == 0 && current.World_ID == 1 && current.Chapter_ID == 1)
 		{
 			vars.index = 0;
+			vars.asCase = 0;
 			vars.hasWampy = false;
 			return true;
 		}
@@ -197,7 +218,7 @@ split
 	}
 	else
 	{
-		if(old.IsFade == 0 && current.IsFade == 1)
+		if(old.ILCheck != current.ILCheck)
 		{
 			vars.asCase = 0;
 			return true;
