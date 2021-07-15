@@ -81,7 +81,7 @@ state("groove", "FI")
 
 startup
 {
-	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.0.0 by UltraStars3000");
+	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.1.0 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or to contribute on this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	settings.Add("contact", true, "Contact me if you possess any version that isn't supported");
 	
@@ -90,6 +90,9 @@ startup
 	
 	settings.Add("isIL", false, "Individual Levels");
 	settings.SetToolTip("isIL", "This option will allow the autosplitter to start whenever a level is started");
+	
+	settings.Add("endScreen", false, "[IL] Split at the ending screen");
+	settings.SetToolTip("endScreen", "Temporary setting to handle both old and new rule when it comes to ILs");
 }
 
 init
@@ -206,9 +209,9 @@ split
 	}
 	else if(vars.asCase == 1)
 	{
-		if(old.State != current.State)
+		if((settings["isIL"] && old.ILCheck != current.ILCheck) || old.State != current.State)
 		{
-			if(!settings["isIL"])
+			if(!settings["endScreen"])
 			{
 				vars.asCase = 0;
 				return true;
