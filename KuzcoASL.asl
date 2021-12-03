@@ -1,83 +1,7 @@
-//	The Emperor's New Groove PC autosplitter. English, French, Spanish, Italian and Finnish versions
+//	The Emperor's New Groove PC autosplitter.
 //	Developped by UltraStars3000 || Tested by the entire TENG crew
 
-//	TODO LIST:
-//	German support and more if any
-
-state("groove")
-{
-	byte ENGLISH : 0x179D00;
-	byte FRENCH : 0x179E9C;
-	byte SPANISH : 0x179EF4;
-	byte ITALIAN : 0x179E94;
-	byte FINNISH : 0x179EA4;
-}
-
-state("groove", "EN")
-{
-	byte World_ID : 0x184548;
-	byte Chapter_ID : 0x18454C;
-	byte State : 0x1807E9;
-	byte Ingame : 0x2D991C;
-	byte ChSw : 0x2D8B40;
-	byte ILCheck : 0x183D90;
-	
-	byte Secrets : 0x1844F4;
-	byte Coins : 0x1FC604;
-	byte Wampys : 0x1FC614;	
-}
-state("groove", "FR")
-{
-	byte World_ID : 0x184DE8;
-	byte Chapter_ID : 0x184DEC;
-	byte State : 0x181089;
-	byte Ingame : 0x2DA1C4;
-	byte ChSw : 0x2D93E0;
-	byte ILCheck : 0x184630;
-	
-	byte Secrets : 0x1844F4;
-	byte Coins : 0x1FCEA4;
-	byte Wampys : 0x1FCEB4;
-}
-state("groove", "ES")
-{
-	byte World_ID : 0x184AB8;
-	byte Chapter_ID : 0x184ABC;
-	byte State : 0x180D59;
-	byte Ingame : 0x2D9E94;
-	byte ChSw : 0x2D90B0;
-	byte ILCheck : 0x184300;
-	
-	byte Secrets : 0x184A64;
-	byte Coins : 0x1FCB74;
-	byte Wampys : 0x1FCB84;	
-}
-state("groove", "IT")
-{
-	byte World_ID : 0x184EB8;
-	byte Chapter_ID : 0x184EBC;
-	byte State : 0x181159;
-	byte Ingame : 0x2DA294;
-	byte ChSw : 0x2D94B0;
-	byte ILCheck : 0x184700;
-	
-	byte Secrets : 0x184E64;
-	byte Coins : 0x1FCF74;
-	byte Wampys : 0x1FCF84;	
-}
-state("groove", "FI")
-{
-	byte World_ID : 0x184F08;
-	byte Chapter_ID : 0x184F0C;
-	byte State : 0x1811A9;
-	byte Ingame : 0x2DA2E4;
-	byte ChSw : 0x2D9500;
-	byte ILCheck : 0x184750;
-	
-	byte Secrets : 0x184EB4;
-	byte Coins : 0x1FCFC4;
-	byte Wampys : 0x1FCFD4;
-}
+state("groove") {}
 
 startup
 {
@@ -96,35 +20,59 @@ startup
 }
 
 init
-{	
-	vars.lang = "NULL";
-	if(current.ENGLISH == 81)
+{
+	vars.initialized = false;
+
+	var patterns = new dynamic[,]
 	{
-		version = "EN";
-		vars.lang = "English";
-	}
-	else if(current.FRENCH == 81)
+		{ typeof(int ), "World_ID"  , 5, "8D 48 01 89 0D ?? ?? ?? ?? 74 2A" },
+		{ typeof(int ), "Chapter_ID", 4, "8D 78 01 A1 ?? ?? ?? ?? 8D 0C 52" },
+		{ typeof(int ), "State"     , 3, "85 C0 A3 ?? ?? ?? ?? 7E 26" },
+		{ typeof(byte), "Ingame"    , 3, "74 4B A0 ?? ?? ?? ?? 84 C0" },
+		{ typeof(byte), "ChSw"      , 3, "C3 C6 05 ?? ?? ?? ?? 00 52" },
+		{ typeof(int ), "ILCheck"   , 4, "33 C0 89 15 ?? ?? ?? ?? 5E" },
+
+		{ typeof(int ), "Secrets"   , 3, "74 1B A1 ?? ?? ?? ?? 8B" },
+		{ typeof(int ), "Coins"     , 2, "8B 0D ?? ?? ?? ?? C1 E8 0C 3B C8" },
+		{ typeof(int ), "Wampys"    , 6, "6A 20 C1 E8 0C A3 ?? ?? ?? ??" }
+	};
+
+	// Find variables
+	var scanTarget = new SigScanTarget();
+	for (int i = 0; i < patterns.GetLength(0); ++i)
 	{
-		version = "FR";
-		vars.lang = "French";
+		var offset  = patterns[i, 2];
+		var pattern = patterns[i, 3];
+		scanTarget.AddSignature(offset, pattern);
 	}
-	else if(current.SPANISH == 83)
+	var mainModule = modules.First();
+	var addrs = new SignatureScanner(game, mainModule.BaseAddress, mainModule.ModuleMemorySize).ScanAll(scanTarget).ToArray();
+	if (addrs.Length != scanTarget.Signatures.Count)
 	{
-		version = "ES";
-		vars.lang = "Spanish";
+		print("ScanAll failed");
+		return;
 	}
-	else if(current.ITALIAN == 69)
+
+	// Create memory watchers
+	vars.memoryWatcherList = new MemoryWatcherList();
+	for (int i = 0; i < patterns.GetLength(0); ++i)
 	{
-		version = "IT";
-		vars.lang = "Italian";
+		var varType = patterns[i, 0];
+		var name    = patterns[i, 1];
+		if (addrs[i] == IntPtr.Zero)
+		{
+			print("Cannot determine address of \"" + name + "\"");
+			return;
+		}
+		var varAddr = memory.ReadPointer(addrs[i]);
+		print(string.Format("Variable \"{0}\" is at 0x{1:08X}", name, varAddr));
+		var watcherType = typeof(MemoryWatcher<>).MakeGenericType(varType);
+		var watcher = Activator.CreateInstance(watcherType, varAddr);
+		vars.memoryWatcherList.Add(watcher);
+		(vars as IDictionary<string, object>).Add(name, watcher);
 	}
-	else if(current.FINNISH == 76)
-	{
-		version = "FI";
-		vars.lang = "Finnish";
-	}
-	
-	vars.index = 0;	
+
+	vars.index = 0;
 	vars.levelArray = new byte[,] { {1,1},{1,2},{1,3},{1,4},
 									{2,1},{2,2},{2,3},
 									{3,1},{3,2},{3,3},{3,4},
@@ -147,16 +95,20 @@ init
 	vars.coinsArray = new byte[] {55,55,55,55,35,70,40,45,55,25,40,65,95,70,90,75,70,100,100,100,35,100,40,100,50,100,80,35,90,70};
 	vars.hasWampy = false;
 	vars.asCase = 0;
-	
+
+	vars.initialized = true;
 }
 
 update
 {
-	if(current.Wampys == old.Wampys+1)
+	if (!vars.initialized) return false;
+	vars.memoryWatcherList.UpdateAll(game);
+
+	if(vars.Wampys.Current == vars.Wampys.Old+1)
 	{
 		vars.hasWampy = true;
 	}
-	if(old.State != 0 && current.State == 0)
+	if(vars.State.Old != 0 && vars.State.Current == 0)
 	{
 		vars.hasWampy = false;
 	}
@@ -166,9 +118,9 @@ start
 {
 	if(settings["isIL"])
 	{
-		if(old.Ingame == 1 && current.Ingame == 0)
+		if(vars.Ingame.Old == 1 && vars.Ingame.Current == 0)
 		{
-			vars.index = vars.indexArray[current.World_ID-1, current.Chapter_ID-1];
+			vars.index = vars.indexArray[vars.World_ID.Current-1, vars.Chapter_ID.Current-1];
 			vars.asCase = 0;
 			vars.hasWampy = false;
 			return true;
@@ -176,7 +128,7 @@ start
 	}
 	else
 	{
-		if(old.Ingame == 1 && current.Ingame == 0 && current.World_ID == 1 && current.Chapter_ID == 1)
+		if(vars.Ingame.Old == 1 && vars.Ingame.Current == 0 && vars.World_ID.Current == 1 && vars.Chapter_ID.Current == 1)
 		{
 			vars.index = 0;
 			vars.asCase = 0;
@@ -190,9 +142,9 @@ split
 {
 	if(vars.asCase == 0)
 	{
-		if((old.World_ID == vars.levelArray[vars.index, 0] && old.Chapter_ID == vars.levelArray[vars.index, 1] && current.World_ID == vars.levelArray[vars.index+1, 0] && current.Chapter_ID == vars.levelArray[vars.index+1, 1]) || (old.ChSw == 0 && current.ChSw == 1))
+		if((vars.World_ID.Old == vars.levelArray[vars.index, 0] && vars.Chapter_ID.Old == vars.levelArray[vars.index, 1] && vars.World_ID.Current == vars.levelArray[vars.index+1, 0] && vars.Chapter_ID.Current == vars.levelArray[vars.index+1, 1]) || (vars.ChSw.Old == 0 && vars.ChSw.Current == 1))
 		{
-			if(current.State != 0 && (!settings["isHundo"] || current.Secrets == vars.secretArray[vars.index] && vars.hasWampy && current.Coins == vars.coinsArray[vars.index]))
+			if(vars.State.Current != 0 && (!settings["isHundo"] || vars.Secrets.Current == vars.secretArray[vars.index] && vars.hasWampy && vars.Coins.Current == vars.coinsArray[vars.index]))
 			{
 				vars.hasWampy = false;
 				if(vars.levelArray[vars.index+1, 1] != 6)
@@ -209,7 +161,7 @@ split
 	}
 	else if(vars.asCase == 1)
 	{
-		if((settings["isIL"] && old.ILCheck != current.ILCheck) || old.State != current.State)
+		if((settings["isIL"] && vars.ILCheck.Old != vars.ILCheck.Current) || vars.State.Old != vars.State.Current)
 		{
 			if(!settings["endScreen"])
 			{
@@ -221,7 +173,7 @@ split
 	}
 	else
 	{
-		if(old.ILCheck != current.ILCheck)
+		if(vars.ILCheck.Old != vars.ILCheck.Current)
 		{
 			vars.asCase = 0;
 			return true;
@@ -231,7 +183,7 @@ split
 
 reset
 {
-	if(((current.World_ID == 1 && current.Chapter_ID == 1) || settings["isIL"]) && old.Ingame == 0 && current.Ingame == 1)
+	if(((vars.World_ID.Current == 1 && vars.Chapter_ID.Current == 1) || settings["isIL"]) && vars.Ingame.Old == 0 && vars.Ingame.Current == 1)
 	{
 		return true;
 	}
