@@ -271,7 +271,7 @@ update
 				print("The Ruins LOADED");
 				vars.offType = new int[] {0,4,4,1,1,1,6};
 				vars.offList = new int[] {0x40, 0x00, 0x00, 0x58, 0x50, 0x40};
-				vars.extra = new dynamic[] {0, new float[] {-110.5F,-110.3F, 0.925F,0.945F, -37.15F,-36.85F}, new float[] {-16.34F,-16.31F, 28.51F,28.61F, 65.41F,65.43F},0,0,0};
+				vars.extra = new dynamic[] {0, new float[] {-111.0F,-109.0F, 0.000F,2.000F, -38.00F,-36.00F}, new float[] {-18.00F,-16.00F, 28.00F,30.00F, 65.00F,67.00F},0,0,0};
 				break;
 			case "GORGE_BLIMP":
 				print("The Blimp LOADED");
