@@ -1,5 +1,6 @@
 //	Oddworld: Soulstorm PC autosplitter
 //	Developped by UltraStars3000
+//	Extended splits by GeekyLucii
 
 // LEVELS ID:
 // Front_End	= Main Menu
@@ -31,7 +32,7 @@ state("soulstorm")
 
 startup
 {
-	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.0.0 by UltraStars3000");
+	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.1.0 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or contribute to this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	
 	settings.Add("isIL", false, "Individual Levels");
@@ -192,52 +193,50 @@ update
 	if (!vars.initialized) return false;
 	vars.watchList.UpdateAll(game);
 
-	if(vars.debug) vars.current_Mil = vars.milTimer.Current;
-
-	//Store last menu index
-	if(vars.lvlID.Old == "Front_End" && vars.lvlID.Old != vars.lvlID.Current)
+	if(vars.milTimer.Old > vars.milTimer.Current)
 	{
-		vars.save_menuidx = vars.menuIdx.Current;
-		if(vars.debug) print("Stored last menu index: " + vars.save_menuidx);
+		if(vars.isEndingScreen.Old)
+		{
+			vars.global_Mil = vars.global_Mil+vars.milTimer.Old;
+			if(vars.debug) print("Summed up times by level ending (NL)");
+			return false;
+		}
+		
+		if(vars.isEndMB)
+		{
+			vars.isEndMB = false;
+			vars.global_Mil = vars.global_Mil+vars.milTimer.Old;
+			if(vars.debug) print("Summed up times by level ending (MB)");
+		}
+		if(vars.pauseIdx.Current == 2 || (vars.pauseIdx.Current == 6 && vars.save_menuidx > 1))
+		{
+			vars.global_Mil = vars.global_Mil+vars.milTimer.Old;
+			if(vars.debug) print("Summed up times by level reset");
+		}
 	}
 
-	//Sum up times by level reset (or main menu w/ level select)
-	if((vars.pauseIdx.Current == 2 || (vars.pauseIdx.Current == 6 && vars.save_menuidx > 1)) && vars.milTimer.Old > vars.milTimer.Current && !vars.isEndMB)
-	{
-		vars.global_Mil = vars.global_Mil+vars.milTimer.Old;
-		if(vars.debug) print("Summed up times by level reset");
-	}
-
-	//Sum up times by main menu (main story)
-	if(vars.pauseIdx.Current == 6 && vars.lvlID.Old != "Front_End" && vars.lvlID.Current == "Front_End" && !vars.isEndingScreen.Current)
-	{
-		vars.isBackup = true;
-		vars.backup_Mil = vars.milTimer.Current;
-		if(vars.debug) print("Summed up times by main menu");
-	}
-
-	//Prepare level ending sum up
 	if(vars.isEndingScreen.Old && !vars.isEndingScreen.Current && vars.lvlID.Current == "Front_End")
 	{
 		vars.isEndMB = true;
 		if(vars.debug) print("Prepared level ending sum up (MB)");
 	}
-	else if(vars.isEndingScreen.Old && vars.milTimer.Old > vars.milTimer.Current)
+
+	if(vars.lvlID.Old != vars.lvlID.Current)
 	{
-		vars.global_Mil = vars.global_Mil+vars.milTimer.Old;
-		if(vars.debug) print("Summed up times by level ending (NL)");
+		if(vars.lvlID.Old == "Front_End")
+		{
+			vars.save_menuidx = vars.menuIdx.Current;
+			if(vars.debug) print("Stored last menu index: " + vars.save_menuidx);
+		}
+		
+		if(vars.lvlID.Current == "Front_End" && vars.pauseIdx.Current == 6 && !vars.isEndingScreen.Current)
+		{
+			vars.isBackup = true;
+			vars.backup_Mil = vars.milTimer.Current;
+			if(vars.debug) print("Summed up times by main menu");
+		}
 	}
 
-	//Sum up times by level ending
-	if(vars.isEndMB && vars.milTimer.Old > vars.milTimer.Current)
-	{
-		vars.isEndMB = false;
-		vars.global_Mil = vars.global_Mil+vars.milTimer.Old;
-		if(vars.debug) print("Summed up times by level ending (MB)");
-	}
-
-
-	//End Backup state
 	if(vars.isBackup && vars.milTimer.Old == 0 && vars.milTimer.Current > 0)
 	{
 		vars.isBackup = false;
@@ -379,7 +378,7 @@ update
 		if(vars.debug)
 		{
 			var debugStrTab = new dynamic[] {"CheckID", "DoorsID"};
-			for(int j = 0; j < 1; j++)
+			for(int j = 0; j < 0; j++)
 			{
 				print("-----" + debugStrTab[j] + "-----");
 				for(int i = 0x20; i <= 0xF8; i+=0x8)
