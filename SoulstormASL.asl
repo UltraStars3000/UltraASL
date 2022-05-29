@@ -32,7 +32,7 @@ state("soulstorm")
 
 startup
 {
-	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.1.0 by UltraStars3000");
+	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.2.0 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or contribute to this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	
 	settings.Add("isIL", false, "Individual Levels");
@@ -40,6 +40,7 @@ startup
 	
 	settings.Add("isExtnd", false, "Extended splits");
 	settings.SetToolTip("isExtnd", "Allow the splitter to work with subsplits whithin a level. Select a category afterwards.");
+	settings.Add("isAnyNMG", true, "Any% NMG (DEFAULT)", "isExtnd");
 
 	refreshRate = 60;
 
@@ -72,6 +73,7 @@ init
 			{ typeof(bool ), "isEndingScreen", new int[] {0xB8, 0x8, 0xA00, 0x10} },
 			{ typeof(long ), "currentDoor", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x40, 0x90, 0x68, 0x28, 0x20, 0x508} },
 			{ typeof(uint ), "lastObjXSnap", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x38, 0x13D4} },
+			{ typeof(ulong), "lastObjDSnap", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x38, 0x13D4} },
 			{ typeof(long ), "actionType", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x38, 0xA30, 0x18} },
 			{ typeof(long ), "firstDoor", new int[] {0xB8, 0x8, 0xD60, 0x28, 0x10, 0x20} },
 			{ typeof(float), "abeXPos", new int[] {0xB8, 0x8, 0xE80, 0x28, 0x10, 0x70, 0x38, 0x10, 0x30, 0x30, 0x8, 0x38, 0x18, 0x0} },
@@ -257,6 +259,7 @@ update
 		// 2: ObjectXSnap split
 		// 3: Double ObjectXSnap split
 		// 4: 3-Axis position split
+		// 5: Double ObjectDSnap split
 		// 6: Dummy split
 
 		switch((string) vars.lvlID.Current)
@@ -295,8 +298,8 @@ update
 				break;
 			case "Train":
 				print("The Hijack LOADED");
-				vars.offType = new int[] {0,0,6};
-				vars.offList = new int[] {0x40,0x68};
+				vars.offType = new int[] {0,0,0,6};
+				vars.offList = new int[] {0x40,0x60,0x68};
 				break;
 			case "Trellis":
 				print("Reunion At The Old Trellis LOADED");
@@ -328,15 +331,23 @@ update
 				break;
 			case "NM_silo":
 				print("Escape LOADED");
-				vars.offType = new int[] {2,0,2,2,0,0,0,2,6};
-				vars.offList = new int[] {0x00,0x30,0x00,0x00,0x48,0x58,0x60,0x00};
-				vars.extra = new dynamic[] {0xC229D256,0,0xC0CCCCCD,0xC039999A,0,0,0,0xC10E66CE};
+				vars.offType = new int[] {5,5,5,5,5,5,5,5,5,6};
+				vars.offList = new int[] {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+				vars.extra = new dynamic[] {new ulong[] {0x4080000040A665C4,0x4080000040D99998},
+											new ulong[] {0x4248000040A665C4,0x4248000040D99998},
+											new ulong[] {0x428D000040A665C4,0x428D000040D99998},
+											new ulong[] {0x42B9000040A665C3,0x42B9000040D9999A},
+											new ulong[] {0x42E6000040A665C4,0x42E6000040D99998},
+											new ulong[] {0x4309800040A665C0,0x4309800040D9999A},
+											new ulong[] {0x431F000040A665C8,0x431F000040D99998},
+											new ulong[] {0x4341800040A665C4,0x4341800040D9999A},
+											new ulong[] {0x4358000040A665C8,0x4358000040D99998}};
 				break;
 			case "CD_in":
 				print("FeeCo. Depot LOADED");
-				vars.offType = new int[] {0,2,2,6};
-				vars.offList = new int[] {0x40,0x00,0x00};
-				vars.extra = new dynamic[] {0,0x43ED5C33,0x43C663D7};
+				vars.offType = new int[] {0,0,2,6};
+				vars.offList = new int[] {0x40,0x58,0x00};
+				vars.extra = new dynamic[] {0,0,0x43C663D7};
 				break;
 			case "CD_Yards":
 				print("The Yards LOADED");
@@ -485,6 +496,13 @@ split
 				&& vars.abeYPos.Current >= vars.extra[vars.sub_idx][2] && vars.abeYPos.Current <= vars.extra[vars.sub_idx][3]
 				&& vars.abeZPos.Current >= vars.extra[vars.sub_idx][4] && vars.abeZPos.Current <= vars.extra[vars.sub_idx][5]
 				&& vars.milTimer.Current == vars.milTimer.Old)
+				{
+					vars.sub_idx++;
+					return true;
+				}
+				break;
+			case 5:
+				if((vars.lastObjDSnap.Current == vars.extra[vars.sub_idx][0] || vars.lastObjDSnap.Current == vars.extra[vars.sub_idx][1]) && vars.actionType.Current != 0)
 				{
 					vars.sub_idx++;
 					return true;
