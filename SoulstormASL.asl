@@ -32,7 +32,7 @@ state("soulstorm")
 
 startup
 {
-	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.2.0 by UltraStars3000");
+	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.3.0 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or contribute to this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	
 	settings.Add("isIL", false, "Individual Levels");
@@ -73,12 +73,13 @@ init
 			{ typeof(bool ), "isEndingScreen", new int[] {0xB8, 0x8, 0xA00, 0x10} },
 			{ typeof(long ), "currentDoor", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x40, 0x90, 0x68, 0x28, 0x20, 0x508} },
 			{ typeof(uint ), "lastObjXSnap", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x38, 0x13D4} },
-			{ typeof(ulong), "lastObjDSnap", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x38, 0x13D4} },
+			{ typeof(uint ), "lastObjYSnap", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x38, 0x13D8} },
 			{ typeof(long ), "actionType", new int[] {0xB8, 0x8, 0x5D0, 0x28, 0x10, 0x20, 0x38, 0xA30, 0x18} },
 			{ typeof(long ), "firstDoor", new int[] {0xB8, 0x8, 0xD60, 0x28, 0x10, 0x20} },
 			{ typeof(float), "abeXPos", new int[] {0xB8, 0x8, 0xE80, 0x28, 0x10, 0x70, 0x38, 0x10, 0x30, 0x30, 0x8, 0x38, 0x18, 0x0} },
 			{ typeof(float), "abeYPos", new int[] {0xB8, 0x8, 0xE80, 0x28, 0x10, 0x70, 0x38, 0x10, 0x30, 0x30, 0x8, 0x38, 0x18, 0x4} },
 			{ typeof(float), "abeZPos", new int[] {0xB8, 0x8, 0xE80, 0x28, 0x10, 0x70, 0x38, 0x10, 0x30, 0x30, 0x8, 0x38, 0x18, 0x8} },
+			{ typeof(int  ), "tdMuds", new int[] {0xB8, 0x8, 0x968, 0x28, 0x10, 0x20, 0x88} },
 		},
 		new dynamic[,] //DATA_01_APP
 		{
@@ -259,7 +260,7 @@ update
 		// 2: ObjectXSnap split
 		// 3: Double ObjectXSnap split
 		// 4: 3-Axis position split
-		// 5: Double ObjectDSnap split
+		// 5: ObjectYSnap split (Hard coded for Escape)
 		// 6: Dummy split
 
 		switch((string) vars.lvlID.Current)
@@ -333,15 +334,7 @@ update
 				print("Escape LOADED");
 				vars.offType = new int[] {5,5,5,5,5,5,5,5,5,6};
 				vars.offList = new int[] {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-				vars.extra = new dynamic[] {new ulong[] {0x4080000040A665C4,0x4080000040D99998},
-											new ulong[] {0x4248000040A665C4,0x4248000040D99998},
-											new ulong[] {0x428D000040A665C4,0x428D000040D99998},
-											new ulong[] {0x42B9000040A665C3,0x42B9000040D9999A},
-											new ulong[] {0x42E6000040A665C4,0x42E6000040D99998},
-											new ulong[] {0x4309800040A665C0,0x4309800040D9999A},
-											new ulong[] {0x431F000040A665C8,0x431F000040D99998},
-											new ulong[] {0x4341800040A665C4,0x4341800040D9999A},
-											new ulong[] {0x4358000040A665C8,0x4358000040D99998}};
+				vars.extra = new dynamic[] {0x40800000,0x42480000,0x428D0000,0x42B90000,0x42E60000,0x43098000,0x431F0000,0x43418000,0x43580000};
 				break;
 			case "CD_in":
 				print("FeeCo. Depot LOADED");
@@ -502,10 +495,13 @@ split
 				}
 				break;
 			case 5:
-				if((vars.lastObjDSnap.Current == vars.extra[vars.sub_idx][0] || vars.lastObjDSnap.Current == vars.extra[vars.sub_idx][1]) && vars.actionType.Current != 0)
+				if(vars.tdMuds.Current == 0)
 				{
-					vars.sub_idx++;
-					return true;
+					if(vars.lastObjXSnap.Current >= 0x40A665B0 && vars.lastObjXSnap.Current <= 0x40D9999F && vars.lastObjYSnap.Current == vars.extra[vars.sub_idx] && vars.actionType.Current != 0)
+					{
+						vars.sub_idx++;
+						return true;
+					}
 				}
 				break;
 			default:
