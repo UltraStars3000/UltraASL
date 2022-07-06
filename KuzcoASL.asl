@@ -1,11 +1,11 @@
 //	The Emperor's New Groove PC autosplitter.
-//	Developped by UltraStars3000 || Tested by the entire TENG crew
+//	Developped by UltraStars3000 & hdc0 || Tested by the entire TENG crew
 
 state("groove") {}
 
 startup
 {
-	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.1.0 by UltraStars3000");
+	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.3.0 by UltraStars3000 & hdc0");
 	settings.SetToolTip("info", "If you like to report bugs or to contribute on this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	settings.Add("contact", true, "Contact me if you possess any version that isn't supported");
 	
@@ -14,9 +14,6 @@ startup
 	
 	settings.Add("isIL", false, "Individual Levels");
 	settings.SetToolTip("isIL", "This option will allow the autosplitter to start whenever a level is started");
-	
-	settings.Add("endScreen", false, "[IL] Split at the ending screen");
-	settings.SetToolTip("endScreen", "Temporary setting to handle both old and new rule when it comes to ILs");
 }
 
 init
@@ -31,6 +28,7 @@ init
 		{ typeof(byte), "Ingame"    , 3, "74 4B A0 ?? ?? ?? ?? 84 C0" },
 		{ typeof(byte), "ChSw"      , 3, "C3 C6 05 ?? ?? ?? ?? 00 52" },
 		{ typeof(int ), "ILCheck"   , 4, "33 C0 89 15 ?? ?? ?? ?? 5E" },
+		{ typeof(bool), "LastVial"	, 4, "75 18 39 1D ?? ?? ?? ?? 75 10"},
 
 		{ typeof(int ), "Secrets"   , 3, "74 1B A1 ?? ?? ?? ?? 8B" },
 		{ typeof(int ), "Coins"     , 2, "8B 0D ?? ?? ?? ?? C1 E8 0C 3B C8" },
@@ -122,6 +120,10 @@ start
 		{
 			vars.index = vars.indexArray[vars.World_ID.Current-1, vars.Chapter_ID.Current-1];
 			vars.asCase = 0;
+			if(vars.World_ID.Current == 8 && vars.Chapter_ID.Current == 5)
+			{
+				vars.asCase = 2;
+			}
 			vars.hasWampy = false;
 			return true;
 		}
@@ -144,18 +146,11 @@ split
 	{
 		if((vars.World_ID.Old == vars.levelArray[vars.index, 0] && vars.Chapter_ID.Old == vars.levelArray[vars.index, 1] && vars.World_ID.Current == vars.levelArray[vars.index+1, 0] && vars.Chapter_ID.Current == vars.levelArray[vars.index+1, 1]) || (vars.ChSw.Old == 0 && vars.ChSw.Current == 1))
 		{
-			if(vars.State.Current != 0 && (!settings["isHundo"] || vars.Secrets.Current == vars.secretArray[vars.index] && vars.hasWampy && vars.Coins.Current == vars.coinsArray[vars.index]))
+			if(vars.State.Current != 174 && (!settings["isHundo"] || vars.Secrets.Current == vars.secretArray[vars.index] && vars.hasWampy && vars.Coins.Current == vars.coinsArray[vars.index]))
 			{
 				vars.hasWampy = false;
-				if(vars.levelArray[vars.index+1, 1] != 6)
-				{
-					vars.index += 1;
-					vars.asCase = 1;
-				}
-				else
-				{
-					return true;
-				}
+				vars.index += 1;
+				vars.asCase = 1;
 			}
 		}
 	}
@@ -163,19 +158,18 @@ split
 	{
 		if((settings["isIL"] && vars.ILCheck.Old != vars.ILCheck.Current) || vars.State.Old != vars.State.Current)
 		{
-			if(!settings["endScreen"])
+			vars.asCase = 0;
+			if(vars.levelArray[vars.index+1, 1] == 6)
 			{
-				vars.asCase = 0;
-				return true;
+				vars.asCase = 2;
 			}
-			vars.asCase = 2;
+			return true;
 		}
 	}
 	else
 	{
-		if(vars.ILCheck.Old != vars.ILCheck.Current)
+		if(vars.LastVial.Current)
 		{
-			vars.asCase = 0;
 			return true;
 		}
 	}
