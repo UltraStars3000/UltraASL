@@ -28,7 +28,7 @@ init
 		{ typeof(byte), "Ingame"    , 3, "74 4B A0 ?? ?? ?? ?? 84 C0" },
 		{ typeof(byte), "ChSw"      , 3, "C3 C6 05 ?? ?? ?? ?? 00 52" },
 		{ typeof(int ), "ILCheck"   , 4, "33 C0 89 15 ?? ?? ?? ?? 5E" },
-		{ typeof(bool), "LastVial"	, 4, "75 18 39 1D ?? ?? ?? ?? 75 10"},
+		{ typeof(bool), "LastVial"  , 4, "75 18 39 1D ?? ?? ?? ?? 75 10"},
 
 		{ typeof(int ), "Secrets"   , 3, "74 1B A1 ?? ?? ?? ?? 8B" },
 		{ typeof(int ), "Coins"     , 2, "8B 0D ?? ?? ?? ?? C1 E8 0C 3B C8" },
@@ -80,7 +80,7 @@ init
 									{7,1},{7,2},{7,3},{7,4},{7,5},
 									{8,1},{8,2},{8,3},{8,4},{8,5},{8,6}};
 	
-	vars.indexArray = new byte[,] {	{0,1,2,3,0},
+	vars.indexArray = new byte[,] { {0,1,2,3,0},
 									{4,5,6,0,0},
 									{7,8,9,10,0},
 									{11,12,13,0,0},
