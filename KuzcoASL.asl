@@ -35,34 +35,25 @@ init
 		{ typeof(int ), "Wampys"    , 6, "6A 20 C1 E8 0C A3 ?? ?? ?? ??" }
 	};
 
-	// Find variables
-	var scanTarget = new SigScanTarget();
-	for (int i = 0; i < patterns.GetLength(0); ++i)
-	{
-		var offset  = patterns[i, 2];
-		var pattern = patterns[i, 3];
-		scanTarget.AddSignature(offset, pattern);
-	}
-	var mainModule = modules.First();
-	var addrs = new SignatureScanner(game, mainModule.BaseAddress, mainModule.ModuleMemorySize).ScanAll(scanTarget).ToArray();
-	if (addrs.Length != scanTarget.Signatures.Count)
-	{
-		print("ScanAll failed");
-		return;
-	}
-
 	// Create memory watchers
 	vars.memoryWatcherList = new MemoryWatcherList();
+	var mainModule = modules.First();
+	var scanner = new SignatureScanner(game, mainModule.BaseAddress, mainModule.ModuleMemorySize);
 	for (int i = 0; i < patterns.GetLength(0); ++i)
 	{
 		var varType = patterns[i, 0];
 		var name    = patterns[i, 1];
-		if (addrs[i] == IntPtr.Zero)
+		var offset  = patterns[i, 2];
+		var pattern = patterns[i, 3];
+
+		var addr = scanner.Scan(new SigScanTarget(offset, pattern));
+		if (addr == IntPtr.Zero)
 		{
 			print("Cannot determine address of \"" + name + "\"");
 			return;
 		}
-		var varAddr = memory.ReadPointer(addrs[i]);
+
+		var varAddr = memory.ReadPointer(addr);
 		print(string.Format("Variable \"{0}\" is at 0x{1:08X}", name, varAddr));
 		var watcherType = typeof(MemoryWatcher<>).MakeGenericType(varType);
 		var watcher = Activator.CreateInstance(watcherType, varAddr);
