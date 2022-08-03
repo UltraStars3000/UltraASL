@@ -5,7 +5,7 @@ state("groove") {}
 
 startup
 {
-	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.3.0 by UltraStars3000 & hdc0");
+	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.3.1 by UltraStars3000 & hdc0");
 	settings.SetToolTip("info", "If you like to report bugs or to contribute on this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	settings.Add("contact", true, "Contact me if you possess any version that isn't supported");
 	
@@ -168,9 +168,13 @@ split
 	}
 	else
 	{
-		if(vars.LastVial.Current)
+		if(!vars.LastVial.Old && vars.LastVial.Current)
 		{
-			return true;
+			if(vars.asCase == 3)
+			{
+				return true;
+			}
+			vars.asCase += 1;
 		}
 	}
 }
