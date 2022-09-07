@@ -28,41 +28,32 @@ init
 		{ typeof(byte), "Ingame"    , 3, "74 4B A0 ?? ?? ?? ?? 84 C0" },
 		{ typeof(byte), "ChSw"      , 3, "C3 C6 05 ?? ?? ?? ?? 00 52" },
 		{ typeof(int ), "ILCheck"   , 4, "33 C0 89 15 ?? ?? ?? ?? 5E" },
-		{ typeof(bool), "LastVial"	, 4, "75 18 39 1D ?? ?? ?? ?? 75 10"},
+		{ typeof(bool), "LastVial"  , 4, "75 18 39 1D ?? ?? ?? ?? 75 10"},
 
 		{ typeof(int ), "Secrets"   , 3, "74 1B A1 ?? ?? ?? ?? 8B" },
 		{ typeof(int ), "Coins"     , 2, "8B 0D ?? ?? ?? ?? C1 E8 0C 3B C8" },
 		{ typeof(int ), "Wampys"    , 6, "6A 20 C1 E8 0C A3 ?? ?? ?? ??" }
 	};
 
-	// Find variables
-	var scanTarget = new SigScanTarget();
-	for (int i = 0; i < patterns.GetLength(0); ++i)
-	{
-		var offset  = patterns[i, 2];
-		var pattern = patterns[i, 3];
-		scanTarget.AddSignature(offset, pattern);
-	}
-	var mainModule = modules.First();
-	var addrs = new SignatureScanner(game, mainModule.BaseAddress, mainModule.ModuleMemorySize).ScanAll(scanTarget).ToArray();
-	if (addrs.Length != scanTarget.Signatures.Count)
-	{
-		print("ScanAll failed");
-		return;
-	}
-
 	// Create memory watchers
 	vars.memoryWatcherList = new MemoryWatcherList();
+	var mainModule = modules.First();
+	var scanner = new SignatureScanner(game, mainModule.BaseAddress, mainModule.ModuleMemorySize);
 	for (int i = 0; i < patterns.GetLength(0); ++i)
 	{
 		var varType = patterns[i, 0];
 		var name    = patterns[i, 1];
-		if (addrs[i] == IntPtr.Zero)
+		var offset  = patterns[i, 2];
+		var pattern = patterns[i, 3];
+
+		var addr = scanner.Scan(new SigScanTarget(offset, pattern));
+		if (addr == IntPtr.Zero)
 		{
 			print("Cannot determine address of \"" + name + "\"");
 			return;
 		}
-		var varAddr = memory.ReadPointer(addrs[i]);
+
+		var varAddr = memory.ReadPointer(addr);
 		print(string.Format("Variable \"{0}\" is at 0x{1:08X}", name, varAddr));
 		var watcherType = typeof(MemoryWatcher<>).MakeGenericType(varType);
 		var watcher = Activator.CreateInstance(watcherType, varAddr);
@@ -80,7 +71,7 @@ init
 									{7,1},{7,2},{7,3},{7,4},{7,5},
 									{8,1},{8,2},{8,3},{8,4},{8,5},{8,6}};
 	
-	vars.indexArray = new byte[,] {	{0,1,2,3,0},
+	vars.indexArray = new byte[,] { {0,1,2,3,0},
 									{4,5,6,0,0},
 									{7,8,9,10,0},
 									{11,12,13,0,0},
