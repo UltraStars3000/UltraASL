@@ -32,7 +32,7 @@ state("soulstorm")
 
 startup
 {
-	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.3.0 by UltraStars3000");
+	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.4.0 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or contribute to this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	
 	settings.Add("isIL", false, "Individual Levels");
@@ -41,6 +41,14 @@ startup
 	settings.Add("isExtnd", false, "Extended splits");
 	settings.SetToolTip("isExtnd", "Allow the splitter to work with subsplits whithin a level. Select a category afterwards.");
 	settings.Add("isAnyNMG", true, "Any% NMG (DEFAULT)", "isExtnd");
+
+	settings.Add("customRate", false, "Custom Autosplitter refresh rate");
+	settings.SetToolTip("customRate", "Changes the refresh rate of the autosplitter in order to get more accurate times, or help with performance");
+	settings.Add("Hz30", false, "30 refreshes per second", "customRate");
+	settings.Add("Hz45", false, "30 refreshes per second", "customRate");
+	settings.Add("Hz60", true, "60 refreshes per second (DEFAULT)", "customRate");
+	settings.Add("Hz75", false, "75 refreshes per second", "customRate");
+	settings.Add("Hz90", false, "90 refreshes per second", "customRate");
 
 	refreshRate = 60;
 
@@ -418,29 +426,26 @@ isLoading
 
 start
 {
-	if(settings["isIL"])
+	if(vars.isLoadScreen.Old && !vars.isLoadScreen.Current && (settings["isIL"] && vars.lvlID.Current != "Front_End" || vars.lvlID.Current == "ML_in" && vars.save_menuidx <= 1))
 	{
-		if(vars.isLoadScreen.Old && !vars.isLoadScreen.Current && vars.lvlID.Current != "Front_End")
+		if(settings["customRate"])
 		{
-			vars.sub_idx = 0;
-			vars.global_Mil = 0;
-			vars.isBackup = false;
-			vars.isEndMB = false;
-			vars.backup_Mil = 0;
-			return true;
+			var rateList = new dynamic[,] {{"Hz90", 90}, {"Hz75", 75}, {"Hz60", 60}, {"Hz45", 45}, {"Hz30", 30}};
+			for(int i = 0; i < rateList.GetLength(0); ++i)
+			{
+				if(settings[rateList[i,0]])
+				{
+					refreshRate = rateList[i,1];
+				}
+			}
 		}
-	}
-	else
-	{
-		if(vars.isLoadScreen.Old && !vars.isLoadScreen.Current && vars.lvlID.Current == "ML_in" && vars.save_menuidx <= 1)
-		{
-			vars.sub_idx = 0;
-			vars.global_Mil = 0;
-			vars.isBackup = false;
-			vars.isEndMB = false;
-			vars.backup_Mil = 0;
-			return true;
-		} 
+
+		vars.sub_idx = 0;
+		vars.global_Mil = 0;
+		vars.isBackup = false;
+		vars.isEndMB = false;
+		vars.backup_Mil = 0;
+		return true;
 	}
 }
 
