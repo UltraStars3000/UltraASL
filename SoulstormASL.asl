@@ -32,7 +32,7 @@ state("soulstorm")
 
 startup
 {
-	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.4.0 by UltraStars3000");
+	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.5.0 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or contribute to this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	
 	settings.Add("isIL", false, "Individual Levels");
@@ -45,7 +45,7 @@ startup
 	settings.Add("customRate", false, "Custom Autosplitter refresh rate");
 	settings.SetToolTip("customRate", "Changes the refresh rate of the autosplitter in order to get more accurate times, or help with performance");
 	settings.Add("Hz30", false, "30 refreshes per second", "customRate");
-	settings.Add("Hz45", false, "30 refreshes per second", "customRate");
+	settings.Add("Hz45", false, "45 refreshes per second", "customRate");
 	settings.Add("Hz60", true, "60 refreshes per second (DEFAULT)", "customRate");
 	settings.Add("Hz75", false, "75 refreshes per second", "customRate");
 	settings.Add("Hz90", false, "90 refreshes per second", "customRate");
@@ -96,7 +96,8 @@ init
 		new dynamic[,] //DATA_02_UNK
 		{
 			{ typeof(int ), "pauseIdx", new int[] {0xB8, 0x0, 0x60, 0x18, 0x48, 0x10, 0x20, 0xC0} },
-			{ typeof(bool), "isLoadScreen", new int[] {0xB8, 0x0, 0x60, 0x18, 0x120, 0x10, 0x20, 0x78, 0x18} }
+			{ typeof(bool), "isLoadScreen", new int[] {0xB8, 0x0, 0x60, 0x18, 0x120, 0x10, 0x20, 0x78, 0x18} },
+			{ typeof(float), "holdTimer", new int[] {0xB8, 0x0, 0x60, 0x18, 0x240, 0x10, 0x20, 0xEC} }
 		},
 		new dynamic[,] //DATA_03_UNK
 		{
@@ -517,7 +518,7 @@ split
 
 reset
 {
-	if(settings["isIL"] && vars.isLoadScreen.Current)
+	if(settings["isIL"] && vars.isLoadScreen.Current || vars.menuIdx.Current <= 1 && vars.holdTimer.Current >= 1.8 && vars.holdTimer.Current < 1.9)
 	{
 		return true;
 	}
