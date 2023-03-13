@@ -32,13 +32,13 @@ state("soulstorm")
 
 startup
 {
-	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.5.0 by UltraStars3000");
+	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.5.1 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or contribute to this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	
 	settings.Add("isIL", false, "Individual Levels");
 	settings.SetToolTip("isIL", "Allow the autosplitter to start whenever a level is started.");
 	
-	settings.Add("isExtnd", false, "Extended splits");
+	settings.Add("isExtnd", true, "Extended splits");
 	settings.SetToolTip("isExtnd", "Allow the splitter to work with subsplits whithin a level. Select a category afterwards.");
 	settings.Add("isAnyNMG", true, "Any% NMG (DEFAULT)", "isExtnd");
 
@@ -501,7 +501,7 @@ split
 				}
 				break;
 			case 5:
-				if(vars.tdMuds.Current == 0)
+				if(vars.tdMuds.Current == 0 || vars.tdMuds.Current == 400)
 				{
 					if(vars.lastObjXSnap.Current >= 0x40A665B0 && vars.lastObjXSnap.Current <= 0x40D9999F && vars.lastObjYSnap.Current == vars.extra[vars.sub_idx] && vars.actionType.Current != 0)
 					{
