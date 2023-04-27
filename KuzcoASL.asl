@@ -5,9 +5,8 @@ state("groove") {}
 
 startup
 {
-	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.3.1 by UltraStars3000 & hdc0");
+	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.4.0 by UltraStars3000 & hdc0");
 	settings.SetToolTip("info", "If you like to report bugs or to contribute on this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
-	settings.Add("contact", true, "Contact me if you possess any version that isn't supported");
 	
 	settings.Add("isHundo", false, "100%");
 	settings.SetToolTip("isHundo", "Adds an additionnal verification at the end of each level so it only splits when the level is fully completed");
@@ -58,6 +57,7 @@ init
 		var watcherType = typeof(MemoryWatcher<>).MakeGenericType(varType);
 		var watcher = Activator.CreateInstance(watcherType, varAddr);
 		vars.memoryWatcherList.Add(watcher);
+		(vars as IDictionary<string, object>).Remove(name);
 		(vars as IDictionary<string, object>).Add(name, watcher);
 	}
 
