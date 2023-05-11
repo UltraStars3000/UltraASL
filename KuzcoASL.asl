@@ -5,7 +5,7 @@ state("groove") {}
 
 startup
 {
-	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.4.0 by UltraStars3000 & hdc0");
+	settings.Add("info", true, "The Emperor's New Groove autospliiter v1.5.0 by UltraStars3000 & hdc0");
 	settings.SetToolTip("info", "If you like to report bugs or to contribute on this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	
 	settings.Add("isHundo", false, "100%");
@@ -27,7 +27,8 @@ init
 		{ typeof(byte), "Ingame"    , 3, "74 4B A0 ?? ?? ?? ?? 84 C0" },
 		{ typeof(byte), "ChSw"      , 3, "C3 C6 05 ?? ?? ?? ?? 00 52" },
 		{ typeof(int ), "ILCheck"   , 4, "33 C0 89 15 ?? ?? ?? ?? 5E" },
-		{ typeof(bool), "LastVial"  , 4, "75 18 39 1D ?? ?? ?? ?? 75 10"},
+		{ typeof(bool), "VialFade"  , 4, "75 18 39 1D ?? ?? ?? ?? 75 10"},
+		{ typeof(int ), "ViewZone"  , 4, "D3 E6 85 35 ?? ?? ?? ?? 74 0E" },
 
 		{ typeof(int ), "Secrets"   , 3, "74 1B A1 ?? ?? ?? ?? 8B" },
 		{ typeof(int ), "Coins"     , 2, "8B 0D ?? ?? ?? ?? C1 E8 0C 3B C8" },
@@ -159,13 +160,9 @@ split
 	}
 	else
 	{
-		if(!vars.LastVial.Old && vars.LastVial.Current)
+		if(!vars.VialFade.Old && vars.VialFade.Current && vars.ViewZone.Current == 0x02000000)
 		{
-			if(vars.asCase == 3)
-			{
-				return true;
-			}
-			vars.asCase += 1;
+			return true;
 		}
 	}
 }
