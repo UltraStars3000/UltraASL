@@ -32,7 +32,7 @@ state("soulstorm")
 
 startup
 {
-	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.5.1 by UltraStars3000");
+	settings.Add("info", true, "Oddworld: Soulstorm autosplitter v1.6.0 by UltraStars3000");
 	settings.SetToolTip("info", "If you like to report bugs or contribute to this autosplitter, feel free to contact me on Discord: UltraStars3000#8412");
 	
 	settings.Add("isIL", false, "Individual Levels");
@@ -51,6 +51,12 @@ startup
 	settings.Add("Hz90", false, "90 refreshes per second", "customRate");
 
 	refreshRate = 60;
+
+	vars.IGT_TIME = "In-game time will be displayed here";
+	vars.RTA_TIME = "Real time will be displayed here";
+	vars.IGT_AND_RTA_TIMES = "Both timers will be displayed here";
+
+	vars._________________ = 0;
 
 	vars.isBackup = false;
 	vars.isEndMB = false;
@@ -416,7 +422,11 @@ gameTime
 		vars.finalIGT = vars.global_Mil + vars.milTimer.Current;
 	}
 	vars.IGTtimer = new TimeSpan(0,0,0,0,vars.finalIGT);
-	vars.timerStr = vars.IGTtimer.ToString();
+
+	vars.IGT_TIME = vars.IGTtimer.ToString(@"h\:mm\:ss\.fff");
+	vars.RTA_TIME = TimeSpan.Parse(System.Convert.ToString(timer.CurrentTime.RealTime)).ToString(@"h\:mm\:ss\.fff");
+	vars.IGT_AND_RTA_TIMES = "IGT = " + vars.IGT_TIME + "\nRTA = " + vars.RTA_TIME;
+
 	return vars.IGTtimer;
 }
 
